@@ -1,0 +1,191 @@
+---
+title: "Particle Collision and Handwritten Digits Data Analysis"
+author: "Arin Vansomphone"
+date: "`r Sys.Date()`"
+output: html_document
+---
+# Loading the packages
+```{r}
+library(tidyverse)
+library(readr)
+```
+
+# Importing the data
+### Particle data
+```{r warning=FALSE}
+particledata <- read_csv("samples_test_175_data.csv")
+particledata <- particledata %>%
+  select(-...1)
+
+particledata_long <- particledata %>%
+  select(-`550 samples`, -`600 samples`, -`650 samples`, -`700 samples`) %>%
+  rename(`50` = `50 samples`,
+         `100` = `100 samples`,
+         `150` = `150 samples`,
+         `200` = `200 samples`,
+         `250` = `250 samples`,
+         `300` = `300 samples`,
+         `350` = `350 samples`,
+         `400` = `400 samples`,
+         `450` = `450 samples`,
+         `500` = `500 samples`,) %>%
+  pivot_longer(names_to = "samplesize",
+               values_to = "percentaccuracy",
+               '50' : '500')
+particledata_long$samplesize <- as.double(particledata_long$samplesize)
+particledata_long
+```
+
+### Handwritten data
+```{r warning=FALSE}
+handwrittendata <- read_csv("handwrittendigits175testdata.csv")
+handwrittendata <- handwrittendata %>%
+  select(-...1)
+
+handwrittendata_long <- handwrittendata %>%
+  select(-`550 samples`, -`600 samples`, -`650 samples`, -`700 samples`) %>%
+  rename(`50` = `50 samples`,
+         `100` = `100 samples`,
+         `150` = `150 samples`,
+         `200` = `200 samples`,
+         `250` = `250 samples`,
+         `300` = `300 samples`,
+         `350` = `350 samples`,
+         `400` = `400 samples`,
+         `450` = `450 samples`,
+         `500` = `500 samples`,) %>%
+  pivot_longer(names_to = "samplesize",
+               values_to = "percentaccuracy",
+               '50' : '500')
+handwrittendata_long$samplesize <- as.double(handwrittendata_long$samplesize)
+handwrittendata_long
+```
+
+# Finding the summary statistics
+### Particle data
+```{r}
+particledatastats <- particledata_long %>%
+  group_by(samplesize) %>%
+  summarize(average = mean(percentaccuracy),
+            sd = sd(percentaccuracy),
+            min = min(percentaccuracy),
+            Q1 = quantile(percentaccuracy, probs = 0.25),
+            median = median(percentaccuracy),
+            Q3 = quantile(percentaccuracy, probs = 0.75),
+            max = max(percentaccuracy),
+            IQR = Q3 - Q1) %>%
+  arrange(samplesize)
+particledatastats
+```
+
+### Handwritten data
+```{r}
+handwrittendatastats <- handwrittendata_long %>%
+  group_by(samplesize) %>%
+  summarize(average = mean(percentaccuracy),
+            sd = sd(percentaccuracy),
+            min = min(percentaccuracy),
+            Q1 = quantile(percentaccuracy, probs = 0.25),
+            median = median(percentaccuracy),
+            Q3 = quantile(percentaccuracy, probs = 0.75),
+            max = max(percentaccuracy),
+            IQR = Q3 - Q1) %>%
+  arrange(samplesize)
+handwrittendatastats
+```
+
+# Plotting the data
+### Particle data
+```{r}
+particledata_long %>%
+  ggplot(aes(x = samplesize, y = percentaccuracy)) +
+  geom_point() + 
+  labs(x = "Sample Size",
+       y = "Accuracy (%) for 175 test samples")
+```
+
+### Handwritten data
+```{r}
+handwrittendata_long %>%
+  ggplot(aes(x = samplesize, y = percentaccuracy)) +
+  geom_point() + 
+  labs(x = "Sample Size",
+       y = "Accuracy (%) for 175 test samples")
+```
+
+# Statistical tests
+### Particle data
+Line of best fit
+```{r}
+x = particledata_long$samplesize
+y = particledata_long$percentaccuracy
+
+plot(x, y, col = 'red', cex = 1.2)
+abline(lm(y ~ x), col = 'blue')
+```
+```{r}
+summary(lm(y ~ x))$coefficients
+```
+P value of roughly 0.148 is greater than $\alpha$ = 0.05, so we fail to reject the null hypothesis. There is insufficient evidence that greater sample sizes increase the model's accuracy. 
+
+R-squared value
+```{r}
+particleml = lm(y ~ x, data = particledata_long)
+summary(particleml)$r.squared
+```
+
+### Handwritten data
+Line of best fit
+```{r}
+a = handwrittendata_long$samplesize
+b = handwrittendata_long$percentaccuracy
+
+plot(a, b, col = 'red', cex = 1.2)
+abline(lm(b ~ a), col = 'blue')
+```
+```{r}
+summary(lm(b ~ a))$coefficients
+```
+P value of approximately 0 is less than $\alpha$ = 0.05, so we reject the null hypothesis. There is strong evidence that increasing the sample size with the handwritten digits data increases the model's accuracy.
+
+R-squared value
+```{r}
+handwrittenml = lm(b ~ a, data = handwrittendata_long)
+summary(handwrittenml)$r.squared
+```
+
+# Particle data graph of standard deviation
+```{r}
+particledatastats %>%
+  ggplot(aes(x = samplesize, y = sd)) + 
+  geom_point() +
+  labs(x = "Sample Size",
+       y = "Standard Deviation of Accuracy (%) for 175 Test Samples") +
+  geom_smooth(se = FALSE, method = 'lm')
+```
+
+### Statistical test for standard deviation
+```{r}
+c = particledatastats$sd
+d = particledatastats$samplesize
+summary(lm(c ~ d))$coefficients
+```
+P value of approximately 0 is less than $\alpha$ = 0.05, so we reject the null hypothesis. There is strong evidence that increasing the sample size with the particle data decreases the standard deviation, and thus spread, of the model's accuracy.
+
+# Boxplot graphs for accuracy
+### Particle data
+```{r}
+ggplot(particledata_long, aes(x = samplesize, y = percentaccuracy)) +
+  geom_boxplot(aes(group = samplesize)) +
+  labs(x = "Sample Size",
+       y = "Accuracy (%) for 175 Test Samples")
+```
+
+### Handwritten data
+```{r}
+ggplot(handwrittendata_long, aes(x = samplesize, y = percentaccuracy)) +
+  geom_boxplot(aes(group = samplesize)) +
+  labs(x = "Sample Size",
+       y = "Accuracy (%) for 175 Test Samples")
+```
+
