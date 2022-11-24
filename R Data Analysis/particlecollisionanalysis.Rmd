@@ -128,6 +128,95 @@ summary(lm(y ~ x))$coefficients
 ```
 P value of roughly 0.148 is greater than $\alpha$ = 0.05, so we fail to reject the null hypothesis. There is insufficient evidence that greater sample sizes increase the model's accuracy. 
 
+Is model doing better than guessing?
+```{r}
+particledata_long %>%
+  filter(samplesize == 50) %>%
+  summarize(mean = mean(percentaccuracy),
+            sd = sd(percentaccuracy))
+```
+49 sample T-test done independently. With a P value of 0.117 greater than $\alpha$ = 0.05, we fail to reject the null hypothesis. There is insufficient evidence that the model does better than random guessing with the particle data. 
+
+```{r}
+particledata_long %>%
+  filter(samplesize == 500) %>%
+  summarize(mean = mean(percentaccuracy),
+            sd = sd(percentaccuracy))
+```
+49 sample T-test done independently. With a P value of 0.008 less than $\alpha$ = 0.05, we reject the null hypothesis. There is sufficient evidence that the model does better than random guessing with the particle data. 
+
+Therefore, as we increase the sample size, there is evidence that the model becomes better than random guessing with the particle data.
+
+```{r}
+particledata50 <- particledata_long %>%
+  filter(samplesize == 50)
+ttest50 <- t.test(particledata50$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata100 <- particledata_long %>%
+  filter(samplesize == 100)
+ttest100 <- t.test(particledata100$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata150 <- particledata_long %>%
+  filter(samplesize == 150)
+ttest150 <- t.test(particledata150$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata200 <- particledata_long %>%
+  filter(samplesize == 200)
+ttest200 <- t.test(particledata200$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata250 <- particledata_long %>%
+  filter(samplesize == 250)
+ttest250 <- t.test(particledata250$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata300 <- particledata_long %>%
+  filter(samplesize == 300)
+ttest300 <- t.test(particledata300$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata350 <- particledata_long %>%
+  filter(samplesize == 350)
+ttest350 <- t.test(particledata350$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata400 <- particledata_long %>%
+  filter(samplesize == 400)
+ttest400 <- t.test(particledata400$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata450 <- particledata_long %>%
+  filter(samplesize == 450)
+ttest450 <- t.test(particledata450$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+particledata500 <- particledata_long %>%
+  filter(samplesize == 500)
+ttest500 <- t.test(particledata500$percentaccuracy, mu = 0.20, 
+                  alternative = "greater")
+
+pvaluelist = list(ttest50[["p.value"]], ttest100[["p.value"]], 
+                  ttest150[["p.value"]], ttest200[["p.value"]],
+                  ttest250[["p.value"]], ttest300[["p.value"]],
+                  ttest350[["p.value"]], ttest400[["p.value"]],
+                  ttest450[["p.value"]], ttest500[["p.value"]])
+
+pvaluetable = tibble(samplesize = particledatastats$samplesize,
+                         pvalue = pvaluelist)
+
+pvaluetable$pvalue <- as.double(pvaluetable$pvalue)
+```
+
+```{r}
+pvaluetable %>%
+  ggplot(aes(x = samplesize, y = pvalue)) +
+  geom_point() +
+  geom_smooth(method = 'lm')
+```
+
 R-squared value
 ```{r}
 particleml = lm(y ~ x, data = particledata_long)
@@ -188,4 +277,5 @@ ggplot(handwrittendata_long, aes(x = samplesize, y = percentaccuracy)) +
   labs(x = "Sample Size",
        y = "Accuracy (%) for 175 Test Samples")
 ```
+
 
