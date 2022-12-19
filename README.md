@@ -6,18 +6,18 @@ This `csv` file can be run with the R script to create scatterplots and histogra
 
 The model is supported by Python versions 3.9 and higher. The graphing-producing script is supported by R versions 4.2.1 and higher. 
 
-## R Data Analysis
+## `R Data Analysis` folder
 * Contains results from tests in `csv` file
 * Contains Rmarkdown file with data analysis code
 
-## __pycache__
+## `__pycache__` folder
 * For implementing the quantum neural network
 
-## data
+## `data` folder
 * Contains the particle collision images in `pkl` format
 
-## images
+## `images` folder
 * Noteworthy images from our experiments
 
-## main.ipynb
+## `main.ipynb` folder
 * TensorFlow model code and experiment code for the particle collisions
