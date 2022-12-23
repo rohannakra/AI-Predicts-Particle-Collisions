@@ -110,14 +110,16 @@ summary(log_model)
 
 ### Least squares
 ```{r}
-x = particledata_long$samplesize
-y = particledata_long$percentaccuracy
-
-plot(x, y, col = 'red', cex = 1.2)
-abline(lm(y ~ x), col = 'blue')
+particledata_long %>%
+  ggplot(aes(x = samplesize, y = percentaccuracy)) +
+  geom_point() + 
+  labs(x = "Sample Size",
+       y = "Accuracy (%) for 175 test samples") +
+  geom_smooth(se = FALSE, method = "lm")
 ```
 ```{r}
-summary(lm(y ~ x))$coefficients
+x = particledata_long$samplesize
+y = particledata_long$percentaccuracy
 
 summary(model)
 ```
@@ -209,19 +211,21 @@ handwrittendata_long %>%
 
 ### Linear regression model
 ```{r}
+handwrittendata_long %>%
+  ggplot(aes(x = samplesize, y = percentaccuracy)) +
+  geom_point() + 
+  labs(x = "Sample Size",
+       y = "Accuracy (%) for 175 test samples") +
+  geom_smooth(se = FALSE, method = "lm")
+```
+
+```{r}
 a = handwrittendata_long$samplesize
 b = handwrittendata_long$percentaccuracy
 
-plot(a, b, col = 'red', cex = 1.2)
-abline(lm(b ~ a), col = 'blue')
-```
-```{r}
-summary(lm(b ~ a))$coefficients
-```
+handwrittendatamodel <- lm(b ~ a)
 
-```{r}
-handwrittenml = lm(b ~ a, data = handwrittendata_long)
-summary(handwrittenml)$r.squared
+summary(handwrittendatamodel)
 ```
 
 ### Box plot
