@@ -9,33 +9,20 @@ output: html_document
 library(tidyverse)
 library(readr)
 ```
-
-# Importing and Tidying the Data
+# Sample Size Analysis
+## Importing and Tidying the Data
 ```{r warning=FALSE}
-particledata <- read_csv("samples_test_175_data.csv")
-particledata <- particledata %>%
-  select(-...1)
+particledata <- read_csv("Particle Physics Sample Data - Sheet1.csv")
 
 particledata_long <- particledata %>%
-  select(-`550 samples`, -`600 samples`, -`650 samples`, -`700 samples`) %>%
-  rename(`50` = `50 samples`,
-         `100` = `100 samples`,
-         `150` = `150 samples`,
-         `200` = `200 samples`,
-         `250` = `250 samples`,
-         `300` = `300 samples`,
-         `350` = `350 samples`,
-         `400` = `400 samples`,
-         `450` = `450 samples`,
-         `500` = `500 samples`,) %>%
   pivot_longer(names_to = "samplesize",
                values_to = "percentaccuracy",
-               '50' : '500')
+               '400' : '3400')
 particledata_long$samplesize <- as.double(particledata_long$samplesize)
 particledata_long
 ```
 
-# Finding the Summary Statistics
+## Finding the Summary Statistics
 ```{r}
 particledatastats <- particledata_long %>%
   group_by(samplesize) %>%
@@ -51,16 +38,16 @@ particledatastats <- particledata_long %>%
 particledatastats
 ```
 
-# Plotting the Data
+## Plotting the Data
 ```{r}
 particledata_long %>%
   ggplot(aes(x = samplesize, y = percentaccuracy)) +
   geom_point() + 
-  labs(x = "Sample Size",
-       y = "Accuracy (%) for 175 test samples")
+  labs(x = "Training Set Size",
+       y = "Accuracy (%) for 100 test samples")
 ```
 
-# Linear Regression Tests
+## Linear Regression Tests
 ### Weighted least squares
 ```{r}
 x = particledata_long$samplesize
@@ -113,32 +100,34 @@ summary(log_model)
 particledata_long %>%
   ggplot(aes(x = samplesize, y = percentaccuracy)) +
   geom_point() + 
-  labs(x = "Sample Size",
-       y = "Accuracy (%) for 175 test samples") +
+  labs(x = "Training Set Size",
+       y = "Accuracy (%) for 100 test samples") +
   geom_smooth(se = FALSE, method = "lm")
 ```
 ```{r}
 x = particledata_long$samplesize
 y = particledata_long$percentaccuracy
 
+model <- lm(y ~ x)
+
 summary(model)
 ```
 
-### Model accuracy vs. random guessing
+## Model accuracy vs. random guessing
 ```{r}
 particledata500_long <- particledata_long %>%
-  filter(samplesize == 500)
+  filter(samplesize == 3400)
 
 t.test(particledata500_long$percentaccuracy, mu = 0.20, alternative = 'greater')
 ```
 
-# Accuracy Standard Deviation vs. Training Sample Size
+## Accuracy Standard Deviation vs. Training Sample Size
 ```{r}
 particledatastats %>%
   ggplot(aes(x = samplesize, y = sd)) + 
   geom_point() +
   labs(x = "Sample Size",
-       y = "Standard Deviation of Accuracy (%) for 175 Test Samples") +
+       y = "Standard Deviation of Accuracy (%) for 100 Test Samples") +
   geom_smooth(se = FALSE, method = 'lm')
 ```
 
@@ -149,45 +138,33 @@ d = particledatastats$samplesize
 summary(lm(c ~ d))$coefficients
 ```
 
-# Boxplot graph
-### Particle data
+## Boxplot graph
 ```{r}
 ggplot(particledata_long, aes(x = samplesize, y = percentaccuracy)) +
   geom_boxplot(aes(group = samplesize)) +
-  labs(x = "Sample Size",
-       y = "Accuracy (%) for 175 Test Samples")
+  labs(x = "Training Set Size",
+       y = "Accuracy (%) for 100 Test Samples")
 ```
 
-# Comparison with Handwritten Data
-### Importing data
+# Epoch Data
+## Importing and Tidying the Data
 ```{r warning=FALSE}
-handwrittendata <- read_csv("handwrittendigits175testdata.csv")
-handwrittendata <- handwrittendata %>%
-  select(-...1)
+epochdata <- read_csv("Particle Physics Epoch Data - Sheet1.csv")
 
-handwrittendata_long <- handwrittendata %>%
-  select(-`550 samples`, -`600 samples`, -`650 samples`, -`700 samples`) %>%
-  rename(`50` = `50 samples`,
-         `100` = `100 samples`,
-         `150` = `150 samples`,
-         `200` = `200 samples`,
-         `250` = `250 samples`,
-         `300` = `300 samples`,
-         `350` = `350 samples`,
-         `400` = `400 samples`,
-         `450` = `450 samples`,
-         `500` = `500 samples`,) %>%
-  pivot_longer(names_to = "samplesize",
+epochdata_long <- epochdata %>%
+  pivot_longer(names_to = "epochs",
                values_to = "percentaccuracy",
-               '50' : '500')
-handwrittendata_long$samplesize <- as.double(handwrittendata_long$samplesize)
-handwrittendata_long
+               '3' : '500')
+
+epochdata_long$epochs <- as.double(epochdata_long$epochs)
+epochdata_long <- epochdata_long %>%
+  na.omit()
 ```
 
-### Finding the summary statistics
+## Finding the Summary Statistics
 ```{r}
-handwrittendatastats <- handwrittendata_long %>%
-  group_by(samplesize) %>%
+epochdatastats <- epochdata_long %>%
+  group_by(epochs) %>%
   summarize(average = mean(percentaccuracy),
             sd = sd(percentaccuracy),
             min = min(percentaccuracy),
@@ -196,42 +173,60 @@ handwrittendatastats <- handwrittendata_long %>%
             Q3 = quantile(percentaccuracy, probs = 0.75),
             max = max(percentaccuracy),
             IQR = Q3 - Q1) %>%
-  arrange(samplesize)
-handwrittendatastats
+  arrange(epochs)
+epochdatastats
 ```
 
-### Plotting the data
+## Plotting the Data
 ```{r}
-handwrittendata_long %>%
-  ggplot(aes(x = samplesize, y = percentaccuracy)) +
+epochdata_long %>%
+  filter(epochs == c(3, 4, 5, 6, 7)) %>%
+  ggplot(aes(x = epochs, y = percentaccuracy)) +
   geom_point() + 
-  labs(x = "Sample Size",
-       y = "Accuracy (%) for 175 test samples")
+  labs(x = "Epochs",
+       y = "Accuracy (%) for 100 test samples")
 ```
 
-### Linear regression model
+## Least squares
 ```{r}
-handwrittendata_long %>%
-  ggplot(aes(x = samplesize, y = percentaccuracy)) +
+epochdata_long %>%
+  filter(epochs == c(3, 4, 5, 6, 7)) %>%
+  ggplot(aes(x = epochs, y = percentaccuracy)) +
   geom_point() + 
-  labs(x = "Sample Size",
-       y = "Accuracy (%) for 175 test samples") +
+  labs(x = "Epochs",
+       y = "Accuracy (%) for 100 test samples") +
   geom_smooth(se = FALSE, method = "lm")
 ```
 
 ```{r}
-a = handwrittendata_long$samplesize
-b = handwrittendata_long$percentaccuracy
+epochdata_long_small <- epochdata_long %>%
+  filter(epochs == c(3, 4, 5, 6, 7))
 
-handwrittendatamodel <- lm(b ~ a)
+e = epochdata_long_small$epochs
+f = epochdata_long_small$percentaccuracy
 
-summary(handwrittendatamodel)
+epochmodel <- lm(f ~ e)
+
+summary(epochmodel)
 ```
 
-### Box plot
+## Accuracy Standard Deviation vs. Training Sample Size
 ```{r}
-ggplot(handwrittendata_long, aes(x = samplesize, y = percentaccuracy)) +
-  geom_boxplot(aes(group = samplesize)) +
-  labs(x = "Sample Size",
-       y = "Accuracy (%) for 175 Test Samples")
+epochdatastats %>%
+  filter(epochs == c(3, 4, 5, 6, 7)) %>%
+  ggplot(aes(x = epochs, y = sd)) + 
+  geom_point() +
+  labs(x = "Epochs",
+       y = "Standard Deviation of Accuracy (%) for 100 Test Samples") +
+  geom_smooth(se = FALSE, method = 'lm')
+```
+
+### Statistical test for standard deviation
+```{r}
+epochdatastats_small <- epochdatastats %>%
+  filter(epochs == c(3, 4, 5, 6, 7)) 
+
+g = epochdatastats_small$sd
+h = epochdatastats_small$epochs
+summary(lm(h ~ g))$coefficients
 ```
