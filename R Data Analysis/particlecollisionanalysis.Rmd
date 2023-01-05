@@ -275,3 +275,10 @@ ggplot(binarydata_long, aes(x = classification, y = percentaccuracy)) +
        y = "Accuracy (%) for 100 Test Samples")
 ```
 
+## ANOVA Test
+```{r}
+binary.aov <- aov(percentaccuracy ~ classification, data = binarydata_long)
+
+summary(binary.aov)
+```
+
