@@ -230,3 +230,48 @@ g = epochdatastats_small$sd
 h = epochdatastats_small$epochs
 summary(lm(h ~ g))$coefficients
 ```
+
+# Binary Classification Data
+## Importing and Tidying the Data
+```{r warning=FALSE}
+binarydata <- read_csv("Binary Test Data - Sheet1.csv")
+
+binarydata_long <- binarydata %>%
+  pivot_longer(names_to = "classification",
+               values_to = "percentaccuracy",
+               'Muon' : 'Proton')
+```
+
+## Finding statistics
+```{r}
+binarydatastats <- binarydata_long %>%
+  group_by(classification) %>%
+  summarize(average = mean(percentaccuracy),
+            sd = sd(percentaccuracy),
+            min = min(percentaccuracy),
+            Q1 = quantile(percentaccuracy, probs = 0.25),
+            median = median(percentaccuracy),
+            Q3 = quantile(percentaccuracy, probs = 0.75),
+            max = max(percentaccuracy),
+            IQR = Q3 - Q1) %>%
+  arrange(classification)
+binarydatastats
+```
+
+## Plotting the data
+```{r}
+binarydata_long %>%
+  ggplot(aes(x = classification, y = percentaccuracy)) +
+  geom_point() + 
+  labs(x = "Classification",
+       y = "Accuracy (%) for 100 test samples")
+```
+
+## Boxplot graph
+```{r}
+ggplot(binarydata_long, aes(x = classification, y = percentaccuracy)) +
+  geom_boxplot(aes(group = classification)) +
+  labs(x = "Classification",
+       y = "Accuracy (%) for 100 Test Samples")
+```
+
