@@ -102,7 +102,8 @@ particledata_long %>%
   geom_point() + 
   labs(x = "Training Set Size",
        y = "Accuracy (%) for 100 test samples") +
-  geom_smooth(se = FALSE, method = "lm")
+  geom_smooth(se = FALSE, method = "lm") +
+  geom_line(aes(y=20), color = "red")
 ```
 ```{r}
 x = particledata_long$samplesize
@@ -195,7 +196,8 @@ epochdata_long %>%
   geom_point() + 
   labs(x = "Epochs",
        y = "Accuracy (%) for 100 test samples") +
-  geom_smooth(se = FALSE, method = "lm")
+  geom_smooth(se = FALSE, method = "lm") +
+  geom_line(aes(y=20), color = "red")
 ```
 
 ```{r}
@@ -272,7 +274,8 @@ binarydata_long %>%
 ggplot(binarydata_long, aes(x = classification, y = percentaccuracy)) +
   geom_boxplot(aes(group = classification)) +
   labs(x = "Classification",
-       y = "Accuracy (%) for 100 Test Samples")
+       y = "Accuracy (%) for 100 Test Samples") +
+  scale_y_continuous(limits = c(0,100))
 ```
 
 ## ANOVA Test
@@ -280,5 +283,8 @@ ggplot(binarydata_long, aes(x = classification, y = percentaccuracy)) +
 binary.aov <- aov(percentaccuracy ~ classification, data = binarydata_long)
 
 summary(binary.aov)
+```
+```{r}
+TukeyHSD(binary.aov)
 ```
 
